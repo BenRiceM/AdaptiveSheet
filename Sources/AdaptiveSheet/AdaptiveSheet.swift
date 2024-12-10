@@ -10,7 +10,7 @@ extension View {
     // adaptiveAlert
     // adaptiveSheet
     // adaptiveNavigationSheet
-    // adaptiveList
+    // adaptiveNavigationList
     
     public func adaptiveAlert(
         isPresented: Binding<Bool>,
@@ -61,7 +61,6 @@ extension View {
                 isPresented: isPresented,
                 dismissEnabled: dismissEnabled,
                 heightLimit: heightLimit,
-//                isExpandable: isExpandable,
                 cardContent: cardContent,
                 bottomPinnedContent: { _,_ in EmptyView() },
                 fullHeightDidChange: fullHeightDidChange,
@@ -120,7 +119,6 @@ struct AdaptiveAlertModifier<CardContent: View>: ViewModifier {
     var cardContent: (Binding<Bool>, Binding<PresentationDetent>) -> CardContent
     var onDismiss: (() -> Void)?
     
-    // Internal
     @State private var selectedDetent : PresentationDetent = .height(100)
     @State private var adaptiveDetent : PresentationDetent = .height(100)
     @State private var adaptiveDetentTwo : PresentationDetent = .height(99)
@@ -136,8 +134,7 @@ struct AdaptiveAlertModifier<CardContent: View>: ViewModifier {
         self._isPresented = isPresented
         self.cardContent = cardContent
         self.onDismiss = onDismiss
-        
-        selectedDetent = adaptiveDetent
+        self.selectedDetent = adaptiveDetent
     }
     
     func body(content: Content) -> some View {
@@ -173,8 +170,6 @@ struct AdaptiveSheetModifier<CardContent: View, PinnedContent: View>: ViewModifi
     @State private var adaptiveDetent : PresentationDetent = .height(100)
     @State private var adaptiveDetentTwo : PresentationDetent = .height(99)
     
-    let storedLargeDetent = PresentationDetent.large
-    
     var dismissEnabled: Bool
     let heightLimit: CGFloat
     @State var isExpandable: Bool = false
@@ -189,6 +184,10 @@ struct AdaptiveSheetModifier<CardContent: View, PinnedContent: View>: ViewModifi
     var trueHeightLimit : CGFloat {
         let maxHeight = UIScreen.main.bounds.height - 100
         return min(heightLimit, maxHeight)
+    }
+    
+    private var availableDetents : Set<PresentationDetent> {
+        isExpandable ? [adaptiveDetent, adaptiveDetentTwo, .large] : [adaptiveDetent, adaptiveDetentTwo]
     }
     
     init(
@@ -207,14 +206,12 @@ struct AdaptiveSheetModifier<CardContent: View, PinnedContent: View>: ViewModifi
         self.bottomPinnedContent = bottomPinnedContent
         self.fullHeightDidChange = fullHeightDidChange
         self.onDismiss = onDismiss
-        
-        selectedDetent = adaptiveDetent
+        self.selectedDetent = adaptiveDetent
     }
     
     func body(content: Content) -> some View {
         content
             .sheet(isPresented: $isPresented) {
-                // on dismiss
                 onDismiss?()
                 selectedDetent = adaptiveDetent
             } content: {
@@ -238,13 +235,11 @@ struct AdaptiveSheetModifier<CardContent: View, PinnedContent: View>: ViewModifi
                 .scrollBounceBehavior(.basedOnSize)
                 .scrollIndicators(isLargeSheet ? .automatic : .hidden)
                 .presentationDragIndicator(.hidden)
-                .presentationDetents( isExpandable ? [adaptiveDetent, adaptiveDetentTwo, storedLargeDetent] : [adaptiveDetent, adaptiveDetentTwo], selection: $selectedDetent)
+                .presentationDetents(availableDetents, selection: $selectedDetent)
                 .animation(.default, value: adaptiveDetent)
                 .animation(.default, value: selectedDetent)
                 .presentationCompactAdaptation(.sheet)
-                .presentationBackground {
-                    Color.clear
-                }
+                .presentationBackground { Color.clear }
                 .onChange(of: isLargeSheet) { oldValue, newValue in
                     fullHeightDidChange(newValue)
                 }
@@ -252,36 +247,33 @@ struct AdaptiveSheetModifier<CardContent: View, PinnedContent: View>: ViewModifi
     }
 }
 
-
-
-
-
-
 @available(iOS 17.0, *)
 struct AdaptiveNavigationModifier<CardContent: View, PinnedContent: View>: ViewModifier {
     
-    @Binding var isPresented : Bool
+    @Binding private var isPresented : Bool
     
     @State private var selectedDetent : PresentationDetent = .height(100)
     @State private var adaptiveDetent : PresentationDetent = .height(100)
     @State private var adaptiveDetentTwo : PresentationDetent = .height(99)
     
-    let storedLargeDetent = PresentationDetent.large
-    
-    var dismissEnabled: Bool
-    let heightLimit: CGFloat
+    private var dismissEnabled: Bool
+    private let heightLimit: CGFloat
     @State private var isExpandable: Bool = false
-    var cardContent: (Binding<Bool>, Binding<PresentationDetent>) -> CardContent
-    var bottomPinnedContent: (Binding<Bool>, Binding<PresentationDetent>) -> PinnedContent?
+    private var cardContent: (Binding<Bool>, Binding<PresentationDetent>) -> CardContent
+    private var bottomPinnedContent: (Binding<Bool>, Binding<PresentationDetent>) -> PinnedContent?
     
-    var fullHeightDidChange: (Bool) -> ()
-    var onDismiss: (() -> Void)?
+    private var fullHeightDidChange: (Bool) -> ()
+    private var onDismiss: (() -> Void)?
     
     private var isLargeSheet : Bool { selectedDetent == .large }
 
-    var trueHeightLimit : CGFloat {
+    private var trueHeightLimit : CGFloat {
         let maxHeight = UIScreen.main.bounds.height - 100
         return min(heightLimit, maxHeight)
+    }
+    
+    private var availableDetents : Set<PresentationDetent> {
+        isExpandable ? [adaptiveDetent, adaptiveDetentTwo, .large] : [adaptiveDetent, adaptiveDetentTwo]
     }
     
     init(
@@ -300,18 +292,12 @@ struct AdaptiveNavigationModifier<CardContent: View, PinnedContent: View>: ViewM
         self.bottomPinnedContent = bottomPinnedContent
         self.fullHeightDidChange = fullHeightDidChange
         self.onDismiss = onDismiss
-        
-        selectedDetent = adaptiveDetent
-    }
-        
-    var backgroundColor : Color {
-        Color(uiColor: .systemGroupedBackground)
+        self.selectedDetent = adaptiveDetent
     }
     
     func body(content: Content) -> some View {
         content
             .sheet(isPresented: $isPresented) {
-                // on dismiss
                 onDismiss?()
                 selectedDetent = adaptiveDetent
             } content: {
@@ -329,20 +315,14 @@ struct AdaptiveNavigationModifier<CardContent: View, PinnedContent: View>: ViewM
                         .background { PinnedGradientView(isLargeSheet: isLargeSheet) }
                         .ignoresSafeArea(edges: .bottom)
                 })
-                .mask(BackgroundFill(isLargeSheet: isLargeSheet))
+//                .mask(BackgroundFill(isLargeSheet: isLargeSheet))
                 .background { BackgroundFill(isLargeSheet: isLargeSheet) }
-                .padding(.horizontal, isLargeSheet ? 0 : 16)
-                .scrollBounceBehavior(.basedOnSize)
-                .scrollIndicators(isLargeSheet ? .automatic : .hidden)
-                .presentationDragIndicator(.hidden)
-                .presentationDetents( isExpandable ? [adaptiveDetent, adaptiveDetentTwo, storedLargeDetent] : [adaptiveDetent, adaptiveDetentTwo], selection: $selectedDetent)
-                .animation(.default, value: adaptiveDetent)
-                .animation(.default, value: selectedDetent)
-                .presentationCompactAdaptation(.sheet)
-                .presentationBackground { Color.clear }
-                .onChange(of: isLargeSheet) { oldValue, newValue in
-                    fullHeightDidChange(newValue)
-                }
+                .adaptiveStyle(
+                    selectedDetent: $selectedDetent,
+                    availableDetents: availableDetents,
+                    isLargeSheet: isLargeSheet,
+                    fullHeightDidChange: fullHeightDidChange
+                )
             }
     }
 }
@@ -356,22 +336,24 @@ struct AdaptiveNavigationListModifier<CardContent: View, PinnedContent: View>: V
     @State private var adaptiveDetent : PresentationDetent = .height(100)
     @State private var adaptiveDetentTwo : PresentationDetent = .height(99)
     
-    let storedLargeDetent = PresentationDetent.large
-    
-    var dismissEnabled: Bool
-    let heightLimit: CGFloat
+    private var dismissEnabled: Bool
+    private let heightLimit: CGFloat
     @State private var isExpandable: Bool = false
-    var cardContent: (Binding<Bool>, Binding<PresentationDetent>) -> CardContent
-    var bottomPinnedContent: (Binding<Bool>, Binding<PresentationDetent>) -> PinnedContent?
+    private var cardContent: (Binding<Bool>, Binding<PresentationDetent>) -> CardContent
+    private var bottomPinnedContent: (Binding<Bool>, Binding<PresentationDetent>) -> PinnedContent?
     
-    var fullHeightDidChange: (Bool) -> ()
-    var onDismiss: (() -> Void)?
+    private var fullHeightDidChange: (Bool) -> ()
+    private var onDismiss: (() -> Void)?
     
     private var isLargeSheet : Bool { selectedDetent == .large }
 
-    var trueHeightLimit : CGFloat {
+    private var trueHeightLimit : CGFloat {
         let maxHeight = UIScreen.main.bounds.height - 100
         return min(heightLimit, maxHeight)
+    }
+    
+    private var availableDetents : Set<PresentationDetent> {
+        isExpandable ? [adaptiveDetent, adaptiveDetentTwo, .large] : [adaptiveDetent, adaptiveDetentTwo]
     }
     
     init(
@@ -390,18 +372,12 @@ struct AdaptiveNavigationListModifier<CardContent: View, PinnedContent: View>: V
         self.bottomPinnedContent = bottomPinnedContent
         self.fullHeightDidChange = fullHeightDidChange
         self.onDismiss = onDismiss
-        
-        selectedDetent = adaptiveDetent
-    }
-        
-    var backgroundColor : Color {
-        Color(uiColor: .systemGroupedBackground)
+        self.selectedDetent = adaptiveDetent
     }
     
     func body(content: Content) -> some View {
         content
             .sheet(isPresented: $isPresented) {
-                // on dismiss
                 onDismiss?()
                 selectedDetent = adaptiveDetent
             } content: {
@@ -419,20 +395,23 @@ struct AdaptiveNavigationListModifier<CardContent: View, PinnedContent: View>: V
                         .background { PinnedGradientView(isLargeSheet: isLargeSheet) }
                         .ignoresSafeArea(edges: .bottom)
                 })
-                .mask(BackgroundFill(isLargeSheet: isLargeSheet))
-//                .background { BackgroundFill(isLargeSheet: isLargeSheet) }
-                .padding(.horizontal, isLargeSheet ? 0 : 16)
-                .scrollBounceBehavior(.basedOnSize)
-                .scrollIndicators(isLargeSheet ? .automatic : .hidden)
-                .presentationDragIndicator(.hidden)
-                .presentationDetents( isExpandable ? [adaptiveDetent, adaptiveDetentTwo, storedLargeDetent] : [adaptiveDetent, adaptiveDetentTwo], selection: $selectedDetent)
-                .animation(.default, value: adaptiveDetent)
-                .animation(.default, value: selectedDetent)
-                .presentationCompactAdaptation(.sheet)
-                .presentationBackground { Color.clear }
-                .onChange(of: isLargeSheet) { oldValue, newValue in
-                    fullHeightDidChange(newValue)
-                }
+                .adaptiveStyle(
+                    selectedDetent: $selectedDetent,
+                    availableDetents: availableDetents,
+                    isLargeSheet: isLargeSheet,
+                    fullHeightDidChange: fullHeightDidChange
+                )
+//                .mask(BackgroundFill(isLargeSheet: isLargeSheet))
+//                .padding(.horizontal, isLargeSheet ? 0 : 16)
+//                .scrollBounceBehavior(.basedOnSize)
+//                .scrollIndicators(isLargeSheet ? .automatic : .hidden)
+//                .presentationDragIndicator(.hidden)
+//                .presentationDetents(availableDetents, selection: $selectedDetent)
+//                .presentationCompactAdaptation(.sheet)
+//                .presentationBackground { Color.clear }
+//                .onChange(of: isLargeSheet) { oldValue, newValue in
+//                    fullHeightDidChange(newValue)
+//                }
             }
     }
 }
@@ -444,7 +423,7 @@ struct AdaptiveAlertView<CardContent: View> : View {
     @Binding var adaptiveDetent : PresentationDetent
     @Binding var adaptiveDetentTwo : PresentationDetent
     
-    @State var isExpandable: Bool = false
+    @State private var isExpandable: Bool = false
     
     var heightLimit : CGFloat
     var cardContent: (Binding<Bool>, Binding<PresentationDetent>) -> CardContent
@@ -542,7 +521,6 @@ struct AdaptiveNavigationListView<CardContent: View> : View {
     @Binding var selectedDetent : PresentationDetent
     @Binding var adaptiveDetent : PresentationDetent
     @Binding var adaptiveDetentTwo : PresentationDetent
-    
     @Binding var isExpandable: Bool
     var heightLimit : CGFloat
     var cardContent: (Binding<Bool>, Binding<PresentationDetent>) -> CardContent
@@ -574,7 +552,6 @@ struct AdaptiveListView<CardContent: View>: View {
     @Binding var selectedDetent : PresentationDetent
     @Binding var adaptiveDetent : PresentationDetent
     @Binding var adaptiveDetentTwo : PresentationDetent
-    
     @Binding var isExpandable: Bool
     var heightLimit : CGFloat
     var cardContent: (Binding<Bool>, Binding<PresentationDetent>) -> CardContent
@@ -650,19 +627,15 @@ extension View {
 struct AdaptiveNavigationSheetModifier<CardContent: View, PinnedContent: View>: ViewModifier {
     
     @Binding var isPresented : Bool
-    
     @State var selectedDetent : PresentationDetent = .height(100)
     @State private var adaptiveDetent : PresentationDetent = .height(100)
     @State private var adaptiveDetentTwo : PresentationDetent = .height(99)
-    
-    let storedLargeDetent = PresentationDetent.large
-    
+        
     var dismissEnabled: Bool
     let heightLimit: CGFloat
     @State var isExpandable: Bool = false
     var cardContent: (Binding<Bool>, Binding<PresentationDetent>) -> CardContent
     var bottomPinnedContent: (Binding<Bool>, Binding<PresentationDetent>) -> PinnedContent?
-    
     var fullHeightDidChange: (Bool) -> ()
     var onDismiss: (() -> Void)?
     
@@ -693,10 +666,13 @@ struct AdaptiveNavigationSheetModifier<CardContent: View, PinnedContent: View>: 
         self.onDismiss = onDismiss
     }
     
+    private var availableDetents : Set<PresentationDetent> {
+        isExpandable ? [adaptiveDetent, adaptiveDetentTwo, .large] : [adaptiveDetent, adaptiveDetentTwo]
+    }
+    
     func body(content: Content) -> some View {
         content
             .sheet(isPresented: $isPresented) {
-                // on dismiss
                 onDismiss?()
                 selectedDetent = adaptiveDetent
             } content: {
@@ -726,19 +702,22 @@ struct AdaptiveNavigationSheetModifier<CardContent: View, PinnedContent: View>: 
                     .scrollIndicators(isLargeSheet ? .automatic : .hidden)
                     .navigationBarTitleDisplayMode(.inline)
                 }
-                .mask(BackgroundFill(isLargeSheet: isLargeSheet))
-                .padding(.horizontal, isLargeSheet ? 0 : 16)
-                .presentationDragIndicator(.hidden)
-                .presentationDetents( isExpandable ? [adaptiveDetent, adaptiveDetentTwo, storedLargeDetent] : [adaptiveDetent, adaptiveDetentTwo], selection: $selectedDetent)
-                .animation(.default, value: adaptiveDetent)
-                .animation(.default, value: selectedDetent)
-                .presentationCompactAdaptation(.sheet)
-                .presentationBackground { Color.clear }
-                .onChange(of: isLargeSheet) { oldValue, newValue in
-                    fullHeightDidChange(newValue)
-                }
+                .adaptiveStyle(
+                    selectedDetent: $selectedDetent,
+                    availableDetents: availableDetents,
+                    isLargeSheet: isLargeSheet,
+                    fullHeightDidChange: fullHeightDidChange
+                )
+//                .mask(BackgroundFill(isLargeSheet: isLargeSheet))
+//                .padding(.horizontal, isLargeSheet ? 0 : 16)
+//                .presentationDragIndicator(.hidden)
+//                .presentationDetents(availableDetents, selection: $selectedDetent)
+//                .presentationCompactAdaptation(.sheet)
+//                .presentationBackground { Color.clear }
+//                .onChange(of: isLargeSheet) { oldValue, newValue in
+//                    fullHeightDidChange(newValue)
+//                }
             }
-                
     }
 }
 
@@ -811,6 +790,60 @@ struct AdaptiveLayout {
     private static func detent(for height: CGFloat, limit: CGFloat, offset: CGFloat = 0) -> PresentationDetent {
         height.isZero ? .medium : .height(min(limit, height + offset))
     }
+    
+    struct AdaptiveStyleModifier : ViewModifier {
+        
+        @Binding var selectedDetent : PresentationDetent
+        var availableDetents : Set<PresentationDetent>
+        var isLargeSheet : Bool
+        var fullHeightDidChange: (Bool) -> ()
+        
+        func body(content: Content) -> some View {
+            content
+                .mask(BackgroundFill(isLargeSheet: isLargeSheet))
+                .padding(.horizontal, isLargeSheet ? 0 : 16)
+                .scrollBounceBehavior(.basedOnSize)
+                .scrollIndicators(isLargeSheet ? .automatic : .hidden)
+                .presentationDragIndicator(.hidden)
+                .presentationDetents(availableDetents, selection: $selectedDetent)
+                .presentationCompactAdaptation(.sheet)
+                .presentationBackground { Color.clear }
+                .onChange(of: isLargeSheet) { oldValue, newValue in
+                    fullHeightDidChange(newValue)
+                }
+        }
+        
+        //                .mask(BackgroundFill(isLargeSheet: isLargeSheet))
+        //                .padding(.horizontal, isLargeSheet ? 0 : 16)
+        //                .scrollBounceBehavior(.basedOnSize)
+        //                .scrollIndicators(isLargeSheet ? .automatic : .hidden)
+        //                .presentationDragIndicator(.hidden)
+        //                .presentationDetents(availableDetents, selection: $selectedDetent)
+        //                .presentationCompactAdaptation(.sheet)
+        //                .presentationBackground { Color.clear }
+        //                .onChange(of: isLargeSheet) { oldValue, newValue in
+        //                    fullHeightDidChange(newValue)
+        //                }
+    }
 }
 
 
+extension View {
+    
+    
+    public func adaptiveStyle(
+        selectedDetent: Binding<PresentationDetent>,
+        availableDetents: Set<PresentationDetent>,
+        isLargeSheet : Bool,
+        fullHeightDidChange: @escaping(Bool) -> ()
+    )  -> some View {
+        return modifier(
+            AdaptiveLayout.AdaptiveStyleModifier(
+                selectedDetent: selectedDetent,
+                availableDetents: availableDetents,
+                isLargeSheet: isLargeSheet,
+                fullHeightDidChange: fullHeightDidChange
+            )
+        )
+    }
+}

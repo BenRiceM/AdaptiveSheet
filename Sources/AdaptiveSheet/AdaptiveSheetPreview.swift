@@ -26,118 +26,120 @@ public struct AdaptiveSheetPreview: View {
     public var body: some View {
         
         VStack(spacing: 24) {
+            DemoButton(
+                isPresented: $isShowingSimpleAlert,
+                title: "Show Alert",
+                tint: .red
+            )
+            
+            DemoButton(
+                isPresented: $isShowingList,
+                title: "Show List",
+                tint: .green
+            )
+            
+            DemoButton(
+                isPresented: $isShowingExpandingList,
+                title: "Show Expanding List",
+                tint: .blue
+            )
+            
+            DemoButton(
+                isPresented: $isShowingDemoNavView,
+                title: "Show Nav View",
+                tint: .indigo
+            )
+            
+            DemoButton(
+                isPresented: $isShowingDemoNavList,
+                title: "Show Nav List",
+                tint: .purple
+            )
+        }
+        .padding(.horizontal, 48)
+        .adaptiveAlert(isPresented: $isShowingSimpleAlert) { isPresented, detent in
+            DemoAlertView()
+        }
+        
+        .adaptiveSheet(isPresented: $isShowingList, adaptiveDetentLimit: 300) { _, _ in
+            DemoListView()
+        } bottomPinnedContent: { isPresented, _ in
+            SheetButton(title: "Close") {
+                isPresented.wrappedValue = false
+            }
+        }
+        
+        .adaptiveSheet(isPresented: $isShowingExpandingList, adaptiveDetentLimit: 500) { _, _ in
+            DemoExpandingListView(count: $expandingListCount)
+                .safeAreaPadding(.bottom, 80)
+        } bottomPinnedContent: { isPresented, _ in
+            SheetButton(title: "Add Item") {
+                expandingListCount += 1
+            }
+        } onDismiss: {
+            expandingListCount = 0
+        }
+        
+        .adaptiveNavigationSheet(isPresented: $isShowingDemoNavView,
+            cardContent: { _, _ in
+                DemoNavigationView()
+            },
+            bottomPinnedContent: { isPresented, _ in
+                SheetButton(title: "Close") {
+                    isPresented.wrappedValue = false
+                }
+            })
+        .adaptiveNavigationListSheet(isPresented: $isShowingDemoNavList) { _, _ in
+            DemoNavigationList()
+                .navigationTitle("Adaptive Demo")
+        }
+    }
+    
+    struct DemoButton : View {
+        
+        @Binding var isPresented : Bool
+        var title : String
+        var tint : Color
+        
+        var body: some View {
             Button {
-                isShowingSimpleAlert = true
+                isPresented = true
             } label: {
                 Text("Show Alert")
                     .font(.system(.headline, design: .default, weight: .semibold))
                     .frame(maxWidth: .infinity, minHeight: 32)
             }
             .buttonStyle(.borderedProminent)
-            .tint(.red)
-            
-            Button {
-                isShowingList = true
-            } label: {
-                Text("Show List")
-                    .font(.system(.headline, design: .default, weight: .semibold))
-                    .frame(maxWidth: .infinity, minHeight: 32)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.green)
-            
-            Button {
-                isShowingExpandingList = true
-            } label: {
-                Text("Show Expanding List")
-                    .font(.system(.headline, design: .default, weight: .semibold))
-                    .frame(maxWidth: .infinity, minHeight: 32)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.blue)
-            
-            Button {
-                isShowingDemoNavView = true
-            } label: {
-                Text("Show Nav View")
-                    .font(.system(.headline, design: .default, weight: .semibold))
-                    .frame(maxWidth: .infinity, minHeight: 32)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.indigo)
-            
-            Button {
-                isShowingDemoNavList = true
-            } label: {
-                Text("Show Nav List")
-                    .font(.system(.headline, design: .default, weight: .semibold))
-                    .frame(maxWidth: .infinity, minHeight: 32)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.purple)
+            .tint(tint)
         }
-        .padding(.horizontal, 48)
-        .adaptiveAlert(isPresented: $isShowingSimpleAlert) { isPresented, detent in
+    }
+    
+    struct SheetButton : View {
+        
+        var title : String
+        var action : () -> ()
+        
+        var body: some View {
+            Button {
+                action()
+            } label: {
+                Text(title)
+                    .font(.system(.headline, design: .default, weight: .semibold))
+                    .foregroundStyle(Color(uiColor: .systemBackground))
+                    .frame(maxWidth: .infinity, minHeight: 32)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.primary)
+            .padding()
+        }
+    }
+    
+    struct DemoAlertView : View {
+        var body: some View {
             Text("!")
                 .font(.system(.title2, design: .default, weight: .bold))
                 .foregroundStyle(.red)
                 .padding(.vertical, 24)
-        }
-        .adaptiveSheet(isPresented: $isShowingList, adaptiveDetentLimit: 300) { _, _ in
-            DemoListView()
-                .safeAreaPadding(.bottom, 80)
-        } bottomPinnedContent: { isPresented, _ in
-            Button {
-                isPresented.wrappedValue = false
-            } label: {
-                Text("Close")
-                    .font(.system(.headline, design: .default, weight: .semibold))
-                    .foregroundStyle(Color(uiColor: .systemBackground))
-                    .frame(maxWidth: .infinity, minHeight: 32)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.primary)
-            .padding()
-        }
-        .adaptiveSheet(isPresented: $isShowingExpandingList, adaptiveDetentLimit: 500) { _, _ in
-            DemoExpandingListView(count: $expandingListCount)
-                .safeAreaPadding(.bottom, 80)
-        } bottomPinnedContent: { isPresented, _ in
-            Button {
-                expandingListCount += 1
-            } label: {
-                Text("Add Item")
-                    .font(.system(.headline, design: .default, weight: .semibold))
-                    .foregroundStyle(Color(uiColor: .systemBackground))
-                    .frame(maxWidth: .infinity, minHeight: 32)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.primary)
-            .padding()
-        } onDismiss: {
-            expandingListCount = 0
-        }
-        .adaptiveNavigationSheet(
-            isPresented: $isShowingDemoNavView,
-            cardContent: { _, _ in
-                DemoNavigationView()
-            },
-            bottomPinnedContent: { isPresented, _ in
-                Button {
-                    isPresented.wrappedValue = false
-                } label: {
-                    Text("Close")
-                        .font(.system(.headline, design: .default, weight: .semibold))
-                        .foregroundStyle(Color(uiColor: .systemBackground))
-                        .frame(maxWidth: .infinity, minHeight: 32)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.primary)
-                .padding()
-            })
-        .adaptiveNavigationListSheet(isPresented: $isShowingDemoNavList) { _, _ in
-            DemoNavigationList()
-                .navigationTitle("Adaptive Demo")
         }
     }
     
@@ -153,6 +155,7 @@ public struct AdaptiveSheetPreview: View {
                 }
             }
             .padding(.top)
+            .safeAreaPadding(.bottom, 80)
         }
     }
     
