@@ -205,9 +205,13 @@ public struct AdaptiveSheetPreview: View {
         var body: some View {
             HStack {
                 NavigationLink {
-                    Image(systemName: "fish.fill")
-                        .font(.system(.largeTitle, design: .default, weight: .bold))
-                        .foregroundStyle(.blue)
+                    ZStack {
+                        Color.blue.opacity(0.15).ignoresSafeArea()
+                        
+                        Image(systemName: "fish.fill")
+                            .font(.system(.largeTitle, design: .default, weight: .bold))
+                            .foregroundStyle(.blue)
+                    }
                 } label: {
                     Image(systemName: "fish.fill")
                         .font(.system(.headline, design: .default, weight: .bold))
@@ -218,9 +222,13 @@ public struct AdaptiveSheetPreview: View {
                 .tint(.blue)
                 
                 NavigationLink {
-                    Image(systemName: "carrot.fill")
-                        .font(.system(.largeTitle, design: .default, weight: .bold))
-                        .foregroundStyle(.orange)
+                    ZStack {
+                        Color.orange.opacity(0.15).ignoresSafeArea()
+                        
+                        Image(systemName: "carrot.fill")
+                            .font(.system(.largeTitle, design: .default, weight: .bold))
+                            .foregroundStyle(.orange)
+                    }
                 } label: {
                     Image(systemName: "carrot.fill")
                         .font(.system(.headline, design: .default, weight: .bold))
@@ -231,9 +239,13 @@ public struct AdaptiveSheetPreview: View {
                 .tint(.orange)
                 
                 NavigationLink {
-                    Image(systemName: "leaf.fill")
-                        .font(.system(.largeTitle, design: .default, weight: .bold))
-                        .foregroundStyle(.green)
+                    ZStack {
+                        Color.green.opacity(0.15).ignoresSafeArea()
+                        
+                        Image(systemName: "leaf.fill")
+                            .font(.system(.largeTitle, design: .default, weight: .bold))
+                            .foregroundStyle(.green)
+                    }
                 } label: {
                     Image(systemName: "leaf.fill")
                         .font(.system(.headline, design: .default, weight: .bold))
@@ -253,7 +265,7 @@ public struct AdaptiveSheetPreview: View {
 
             Section {
                 NavigationLink {
-                    Text("Page One")
+                    DemoNavigationListTwo()
                 } label: {
                     Text("One")
                 }
@@ -271,45 +283,71 @@ public struct AdaptiveSheetPreview: View {
                 }
             }
             
-            Section {
-                NavigationLink {
-                    Text("Page Four")
-                } label: {
-                    Text("Four")
+//            Section {
+//                NavigationLink {
+//                    Text("Page Four")
+//                } label: {
+//                    Text("Four")
+//                }
+//                
+//                NavigationLink {
+//                    Text("Page Five")
+//                } label: {
+//                    Text("Five")
+//                }
+//                
+//                NavigationLink {
+//                    Text("Page Six")
+//                } label: {
+//                    Text("Six")
+//                }
+//            }
+//            
+//            Section {
+//                NavigationLink {
+//                    Text("Page Seven")
+//                } label: {
+//                    Text("Seven")
+//                }
+//                
+//                NavigationLink {
+//                    Text("Page Eight")
+//                } label: {
+//                    Text("Eight")
+//                }
+//                
+//                NavigationLink {
+//                    Text("Page Nine")
+//                } label: {
+//                    Text("Nine")
+//                }
+//            }
+        }
+    }
+    
+    struct DemoNavigationListTwo : View {
+        var body: some View {
+            List {
+                Section {
+                    NavigationLink { Text("A") } label: { Text("A") }
+                    NavigationLink { Text("B") } label: { Text("B") }
+                    NavigationLink { Text("C") } label: { Text("C") }
                 }
                 
-                NavigationLink {
-                    Text("Page Five")
-                } label: {
-                    Text("Five")
+                Section {
+                    NavigationLink { Text("D") } label: { Text("D") }
+                    NavigationLink { Text("E") } label: { Text("E") }
+                    NavigationLink { Text("F") } label: { Text("F") }
                 }
                 
-                NavigationLink {
-                    Text("Page Six")
-                } label: {
-                    Text("Six")
+                Section {
+                    NavigationLink { Text("G") } label: { Text("G") }
+                    NavigationLink { Text("H") } label: { Text("H") }
+                    NavigationLink { Text("I") } label: { Text("I") }
                 }
             }
-            
-            Section {
-                NavigationLink {
-                    Text("Page Seven")
-                } label: {
-                    Text("Seven")
-                }
-                
-                NavigationLink {
-                    Text("Page Eight")
-                } label: {
-                    Text("Eight")
-                }
-                
-                NavigationLink {
-                    Text("Page Nine")
-                } label: {
-                    Text("Nine")
-                }
-            }
+            .listStyle(.insetGrouped)
+            .navigationTitle("Page Two")
         }
     }
     
