@@ -24,43 +24,32 @@ public struct AdaptiveSheetPreview: View {
     @State var isShowingTest : Bool = false
     
     public var body: some View {
-        
-        VStack(spacing: 24) {
-            DemoButton(
-                isPresented: $isShowingSimpleAlert,
-                title: "Show Alert",
-                tint: .red
-            )
-            
-            DemoButton(
-                isPresented: $isShowingList,
-                title: "Show List",
-                tint: .green
-            )
-            
-            DemoButton(
-                isPresented: $isShowingExpandingList,
-                title: "Show Expanding List",
-                tint: .blue
-            )
-            
-            DemoButton(
-                isPresented: $isShowingDemoNavView,
-                title: "Show Nav View",
-                tint: .indigo
-            )
-            
-            DemoButton(
-                isPresented: $isShowingDemoNavList,
-                title: "Show Nav List",
-                tint: .purple
-            )
+        Group {
+            if #available(iOS 18.0, *) {
+                DemoButtons(
+                    isShowingSimpleAlert: $isShowingSimpleAlert,
+                    isShowingList: $isShowingList,
+                    isShowingExpandingList: $isShowingExpandingList,
+                    isShowingDemoNavView: $isShowingDemoNavView,
+                    isShowingDemoNavList: $isShowingDemoNavList
+                )
+                .adaptiveNavigationListSheet(isPresented: $isShowingDemoNavList) { _, _ in
+                    DemoNavigationList()
+                        .navigationTitle("Adaptive Demo")
+                }
+            } else {
+                DemoButtons(
+                    isShowingSimpleAlert: $isShowingSimpleAlert,
+                    isShowingList: $isShowingList,
+                    isShowingExpandingList: $isShowingExpandingList,
+                    isShowingDemoNavView: $isShowingDemoNavView,
+                    isShowingDemoNavList: $isShowingDemoNavList
+                )
+            }
         }
-        .padding(.horizontal, 48)
         .adaptiveAlert(isPresented: $isShowingSimpleAlert) { isPresented, detent in
             DemoAlertView()
         }
-        
         .adaptiveSheet(isPresented: $isShowingList, adaptiveDetentLimit: 300) { _, _ in
             DemoListView()
         } bottomPinnedContent: { isPresented, _ in
@@ -68,7 +57,6 @@ public struct AdaptiveSheetPreview: View {
                 isPresented.wrappedValue = false
             }
         }
-        
         .adaptiveSheet(isPresented: $isShowingExpandingList, adaptiveDetentLimit: 500) { _, _ in
             DemoExpandingListView(count: $expandingListCount)
                 .safeAreaPadding(.bottom, 80)
@@ -80,18 +68,56 @@ public struct AdaptiveSheetPreview: View {
             expandingListCount = 0
         }
         
-        .adaptiveNavigationSheet(isPresented: $isShowingDemoNavView,
-            cardContent: { _, _ in
-                DemoNavigationView()
-            },
-            bottomPinnedContent: { isPresented, _ in
-                SheetButton(title: "Close") {
-                    isPresented.wrappedValue = false
-                }
-            })
-        .adaptiveNavigationListSheet(isPresented: $isShowingDemoNavList) { _, _ in
-            DemoNavigationList()
-                .navigationTitle("Adaptive Demo")
+        .adaptiveNavigationSheet(isPresented: $isShowingDemoNavView) { _, _ in
+            DemoNavigationView()
+        } bottomPinnedContent: { isPresented, _ in
+            SheetButton(title: "Close") {
+                isPresented.wrappedValue = false
+            }
+        }
+    }
+    
+    struct DemoButtons : View {
+        
+        @Binding var isShowingSimpleAlert : Bool
+        @Binding var isShowingList : Bool
+        @Binding var isShowingExpandingList : Bool
+        @Binding var isShowingDemoNavView : Bool
+        @Binding var isShowingDemoNavList : Bool
+        
+        var body: some View {
+            VStack(spacing: 24) {
+                DemoButton(
+                    isPresented: $isShowingSimpleAlert,
+                    title: "Show Alert",
+                    tint: .red
+                )
+                
+                DemoButton(
+                    isPresented: $isShowingList,
+                    title: "Show List",
+                    tint: .green
+                )
+                
+                DemoButton(
+                    isPresented: $isShowingExpandingList,
+                    title: "Show Expanding List",
+                    tint: .blue
+                )
+                
+                DemoButton(
+                    isPresented: $isShowingDemoNavView,
+                    title: "Show Nav View",
+                    tint: .indigo
+                )
+                
+                DemoButton(
+                    isPresented: $isShowingDemoNavList,
+                    title: "Show Nav List",
+                    tint: .purple
+                )
+            }
+            .padding(.horizontal, 48)
         }
     }
     
@@ -105,7 +131,7 @@ public struct AdaptiveSheetPreview: View {
             Button {
                 isPresented = true
             } label: {
-                Text("Show Alert")
+                Text(title)
                     .font(.system(.headline, design: .default, weight: .semibold))
                     .frame(maxWidth: .infinity, minHeight: 32)
             }
