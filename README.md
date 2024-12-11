@@ -5,6 +5,8 @@ However, even when presented with smaller detent heights, these sheets can still
 
 Adaptive sheets try to bridge the gap between system sheets, and the custom presentation used when pairing a device such as AirPods. 
 
+![AdaptiveSheet - 1](https://github.com/user-attachments/assets/14c21ef6-7a9b-4934-b2b5-00486f9e5bdf)
+
 ## Implementation
 Adaptive Sheets are built using the standard SwiftUI .sheet presentation, which preserves all the niceties like gestures, presentation bindings, and onDismiss callbacks. 
 
