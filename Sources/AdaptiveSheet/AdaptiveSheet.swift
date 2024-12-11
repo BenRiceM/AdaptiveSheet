@@ -13,13 +13,10 @@ enum AdaptiveStyle {
 
 extension CGFloat {
     static let defaultDetentHeight: CGFloat = 200
-    static let shadowPadding : CGFloat = 20
-    //    static let navigationListOffset: CGFloat = 140
 }
 
 @available(iOS 17.0, *)
 extension View {
-    
     public func adaptiveAlert(
         isPresented: Binding<Bool>,
         @ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View,
@@ -165,13 +162,13 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
     }
     
     private var iPadMinSize : CGSize {
-           switch style {
-           case .alert:                return CGSize(width: 320, height: 60)
-           case .scrollView:           return CGSize(width: 320, height: 60)
-           case .navigationScrollView: return CGSize(width: 320, height: 320)
-           case .navigationListView:   return CGSize(width: 320, height: 320)
-           }
-       }
+        switch style {
+        case .alert:                return CGSize(width: 320, height: 60)
+        case .scrollView:           return CGSize(width: 320, height: 60)
+        case .navigationScrollView: return CGSize(width: 320, height: 320)
+        case .navigationListView:   return CGSize(width: 320, height: 320)
+        }
+    }
     
     func body(content: Content) -> some View {
         content
@@ -190,19 +187,55 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
     }
     
     var sheetBody : some View {
-            Group {
-                switch style {
-                case .alert:
-                    AdaptiveAlertView(
-                        isPresented: $isPresented,
-                        selectedDetent: $selectedDetent,
-                        adaptiveDetent: $adaptiveDetent,
-                        adaptiveDetentTwo: $adaptiveDetentTwo,
-                        heightLimit: trueHeightLimit,
-                        cardContent: cardContent
-                    )
-                case .scrollView:
-                    AdaptiveScrollView(
+        Group {
+            switch style {
+            case .alert:
+                AdaptiveAlertView(
+                    isPresented: $isPresented,
+                    selectedDetent: $selectedDetent,
+                    adaptiveDetent: $adaptiveDetent,
+                    adaptiveDetentTwo: $adaptiveDetentTwo,
+                    heightLimit: trueHeightLimit,
+                    cardContent: cardContent
+                )
+            case .scrollView:
+                AdaptiveScrollView(
+                    isPresented: $isPresented,
+                    selectedDetent: $selectedDetent,
+                    adaptiveDetent: $adaptiveDetent,
+                    adaptiveDetentTwo: $adaptiveDetentTwo,
+                    isExpandable: $isExpandable,
+                    heightLimit: trueHeightLimit,
+                    cardContent: cardContent
+                )
+                .background { BackgroundFill(isLargeSheet: isLargeSheet) }
+                .overlay(alignment: .bottom, content: {
+                    bottomPinnedContent($isPresented, $selectedDetent)
+                        .background { PinnedGradientView(isLargeSheet: isLargeSheet) }
+                        .ignoresSafeArea(edges: .bottom)
+                })
+                
+            case .navigationScrollView:
+                AdaptiveNavigationView(
+                    isPresented: $isPresented,
+                    selectedDetent: $selectedDetent,
+                    adaptiveDetent: $adaptiveDetent,
+                    adaptiveDetentTwo: $adaptiveDetentTwo,
+                    isExpandable: $isExpandable,
+                    heightLimit: trueHeightLimit,
+                    cardContent: cardContent
+                )
+                .overlay(alignment: .bottom, content: {
+                    bottomPinnedContent($isPresented, $selectedDetent)
+                        .background { PinnedGradientView(isLargeSheet: isLargeSheet) }
+                        .ignoresSafeArea(edges: .bottom)
+                })
+                .background { BackgroundFill(isLargeSheet: isLargeSheet) }
+                
+            case .navigationListView:
+                
+                if #available(iOS 18.0, *) {
+                    AdaptiveNavigationListView(
                         isPresented: $isPresented,
                         selectedDetent: $selectedDetent,
                         adaptiveDetent: $adaptiveDetent,
@@ -211,71 +244,33 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
                         heightLimit: trueHeightLimit,
                         cardContent: cardContent
                     )
-                    .background { BackgroundFill(isLargeSheet: isLargeSheet) }
                     .overlay(alignment: .bottom, content: {
                         bottomPinnedContent($isPresented, $selectedDetent)
                             .background { PinnedGradientView(isLargeSheet: isLargeSheet) }
                             .ignoresSafeArea(edges: .bottom)
                     })
-                    
-                case .navigationScrollView:
-                    AdaptiveNavigationView(
-                        isPresented: $isPresented,
-                        selectedDetent: $selectedDetent,
-                        adaptiveDetent: $adaptiveDetent,
-                        adaptiveDetentTwo: $adaptiveDetentTwo,
-                        isExpandable: $isExpandable,
-                        heightLimit: trueHeightLimit,
-                        cardContent: cardContent
-                    )
-                    .overlay(alignment: .bottom, content: {
-                        bottomPinnedContent($isPresented, $selectedDetent)
-                            .background { PinnedGradientView(isLargeSheet: isLargeSheet) }
-                            .ignoresSafeArea(edges: .bottom)
-                    })
-                    .background { BackgroundFill(isLargeSheet: isLargeSheet) }
-                    
-                case .navigationListView:
-                    
-                    if #available(iOS 18.0, *) {
-                        AdaptiveNavigationListView(
-                            isPresented: $isPresented,
-                            selectedDetent: $selectedDetent,
-                            adaptiveDetent: $adaptiveDetent,
-                            adaptiveDetentTwo: $adaptiveDetentTwo,
-                            isExpandable: $isExpandable,
-                            heightLimit: trueHeightLimit,
-                            cardContent: cardContent
-                        )
-                        .overlay(alignment: .bottom, content: {
-                            bottomPinnedContent($isPresented, $selectedDetent)
-                                .background { PinnedGradientView(isLargeSheet: isLargeSheet) }
-                                .ignoresSafeArea(edges: .bottom)
-                        })
-                    } else {
-                        // Fallback on earlier versions
-                        Text("Adaptive List View requires iOS 18")
-                    }
+                } else {
+                    // Fallback on earlier versions
+                    Text("Adaptive List View requires iOS 18")
                 }
             }
-            .tint(.primary)
-            .mask(BackgroundFill(isLargeSheet: isLargeSheet))
-//            .shadow(color: .black.opacity(isLargeSheet ? 0 : 0.1), radius: 8)
-            .padding(.horizontal, isLargeSheet ? 0 : 16)
-//            .padding(.top, isLargeSheet ? 0 : .shadowPadding)
-            .scrollBounceBehavior(.basedOnSize)
-            .scrollIndicators(isLargeSheet ? .automatic : .hidden)
-            .presentationDragIndicator(.hidden)
-            .presentationDetents(availableDetents, selection: $selectedDetent)
-            .presentationCompactAdaptation(.sheet)
-            .presentationBackground { Color.clear }
-            .animation(.default, value: selectedDetent)
-            .animation(.default, value: adaptiveDetent)
-            .animation(.default, value: adaptiveDetentTwo)
-            .onChange(of: isLargeSheet) { oldValue, newValue in
-                fullHeightDidChange(newValue)
-            }
         }
+        .tint(.primary)
+        .mask(BackgroundFill(isLargeSheet: isLargeSheet))
+        .padding(.horizontal, isLargeSheet ? 0 : 16)
+        .scrollBounceBehavior(.basedOnSize)
+        .scrollIndicators(isLargeSheet ? .automatic : .hidden)
+        .presentationDragIndicator(.hidden)
+        .presentationDetents(availableDetents, selection: $selectedDetent)
+        .presentationCompactAdaptation(.sheet)
+        .presentationBackground { Color.clear }
+        .animation(.default, value: selectedDetent)
+        .animation(.default, value: adaptiveDetent)
+        .animation(.default, value: adaptiveDetentTwo)
+        .onChange(of: isLargeSheet) { oldValue, newValue in
+            fullHeightDidChange(newValue)
+        }
+    }
 }
 
 extension Color {
@@ -368,12 +363,12 @@ struct AdaptiveNavigationView<CardContent: View> : View {
                     .onGeometryChange(for: CGFloat.self, of: \.size.height) { newValue in
                         AdaptiveLayout.handleHeightChange(
                             to: heightLimit + 1,
-                        selectedDetent: $selectedDetent,
-                        adaptiveDetent: $adaptiveDetent,
-                        adaptiveDetentTwo: $adaptiveDetentTwo,
-                        isExpandable: $isExpandable,
-                        heightLimit: heightLimit
-                    ) }
+                            selectedDetent: $selectedDetent,
+                            adaptiveDetent: $adaptiveDetent,
+                            adaptiveDetentTwo: $adaptiveDetentTwo,
+                            isExpandable: $isExpandable,
+                            heightLimit: heightLimit
+                        ) }
                     .ignoresSafeArea(edges: .bottom)
             }
         }

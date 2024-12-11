@@ -282,46 +282,6 @@ public struct AdaptiveSheetPreview: View {
                     Text("Three")
                 }
             }
-            
-//            Section {
-//                NavigationLink {
-//                    Text("Page Four")
-//                } label: {
-//                    Text("Four")
-//                }
-//                
-//                NavigationLink {
-//                    Text("Page Five")
-//                } label: {
-//                    Text("Five")
-//                }
-//                
-//                NavigationLink {
-//                    Text("Page Six")
-//                } label: {
-//                    Text("Six")
-//                }
-//            }
-//            
-//            Section {
-//                NavigationLink {
-//                    Text("Page Seven")
-//                } label: {
-//                    Text("Seven")
-//                }
-//                
-//                NavigationLink {
-//                    Text("Page Eight")
-//                } label: {
-//                    Text("Eight")
-//                }
-//                
-//                NavigationLink {
-//                    Text("Page Nine")
-//                } label: {
-//                    Text("Nine")
-//                }
-//            }
         }
     }
     
@@ -350,7 +310,6 @@ public struct AdaptiveSheetPreview: View {
             .navigationTitle("Page Two")
         }
     }
-    
 }
 
 #Preview {
