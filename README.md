@@ -5,7 +5,11 @@ However, even when presented with smaller detent heights, these sheets can still
 
 Adaptive sheets try to bridge the gap between system sheets, and the custom presentation used when pairing a device such as AirPods. 
 
-![AdaptiveSheet - 1](https://github.com/user-attachments/assets/14c21ef6-7a9b-4934-b2b5-00486f9e5bdf)
+
+
+https://github.com/user-attachments/assets/f78f5b21-de9d-45d0-bfa0-32258aee7697
+
+
 
 ## Implementation
 Adaptive Sheets are built using the standard SwiftUI .sheet presentation, which preserves all the niceties like gestures, presentation bindings, and onDismiss callbacks. 
@@ -27,3 +31,8 @@ Behaves the same as NavigationScrollView but uses a List instead of a ScrollView
 
 ## Known Issues:
 - NavigationScrollView and NavigationListView are a little wonky on iPad.
+
+## Leave a tip:
+https://ko-fi.com/benricem
+
+or just say thanks: https://mastodon.social/@BenRiceM/
