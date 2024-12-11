@@ -24,4 +24,4 @@ The contents are placed inside a ScrollView, which itself is inside a Navigation
 Behaves the same as NavigationScrollView but uses a List instead of a ScrollView.
 
 ## Known Issues:
-- NavigationSheets and NavigationListSheets are a little wonky on iPad.
+- NavigationScrollView and NavigationListView are a little wonky on iPad.
