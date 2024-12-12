@@ -264,6 +264,7 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
         .presentationDetents(availableDetents, selection: $selectedDetent)
         .presentationCompactAdaptation(.sheet)
         .presentationBackground { Color.clear }
+        .interactiveDismissDisabled(!dismissEnabled)
         .animation(.default, value: selectedDetent)
         .animation(.default, value: adaptiveDetent)
         .animation(.default, value: adaptiveDetentTwo)
