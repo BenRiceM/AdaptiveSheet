@@ -19,6 +19,7 @@ extension CGFloat {
 extension View {
     public func adaptiveAlert(
         isPresented: Binding<Bool>,
+        dismissEnabled: Bool = true,
         @ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View,
         onDismiss: (() -> Void)? = nil
     )  -> some View {
@@ -26,7 +27,7 @@ extension View {
             AdaptiveModifier(
                 style: .alert,
                 isPresented: isPresented,
-                dismissEnabled: true,
+                dismissEnabled: dismissEnabled,
                 heightLimit: nil,
                 cardContent: cardContent,
                 bottomPinnedContent: { _,_ in EmptyView() },
