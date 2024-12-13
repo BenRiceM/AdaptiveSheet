@@ -20,30 +20,32 @@ Using an Adaptive Sheet is very similar to using a standard system sheet, howeve
 ### Alert
 The simplest form of Adaptive sheet is an Alert. It has no internal scroll view and so when overscrolled upwards, the entire card will move. Content in an Alert is vertically centered.
 
-```
+```swift
 func adaptiveAlert(
-isPresented: Binding<Bool>, 
-@ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View, 
-onDismiss: (() -> Void)? = nil) -> some View
+    isPresented: Binding<Bool>, 
+    @ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View, 
+    onDismiss: (() -> Void)? = nil
+) -> some View
 ```
 
 ### ScrollView
 The contents are placed inside a ScrollView that can expand as the contents change. You can set a limit for the height that the sheet should not automatically grow larger than. If the content size exceeds this limit, the user will be able to expand the sheet to the large detent size.
 
-```
+```swift
 func adaptiveSheet(
-isPresented: Binding<Bool>, 
-dismissEnabled: Bool = true, 
-adaptiveDetentLimit: CGFloat = 450, 
-@ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View, 
-@ViewBuilder bottomPinnedContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View = { _,_ in EmptyView() }, 
-fullHeightDidChange: @escaping (Bool) -> () = { _ in }, 
-onDismiss: (() -> Void)? = nil) -> some View
+    isPresented: Binding<Bool>, 
+    dismissEnabled: Bool = true, 
+    adaptiveDetentLimit: CGFloat = 450, 
+    @ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View, 
+    @ViewBuilder bottomPinnedContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View = { _,_ in EmptyView() }, 
+    fullHeightDidChange: @escaping (Bool) -> () = { _ in }, 
+    onDismiss: (() -> Void)? = nil
+) -> some View
 ```
 
 In practice, calling an adaptive sheet looks as simple as:
 
-```
+```swift
 .adaptiveSheet(isPresented: $isShowingList) { isPresented, detent in
      ContentView()
 }
@@ -52,28 +54,30 @@ In practice, calling an adaptive sheet looks as simple as:
 ### NavigationScrollView
 The contents are placed inside a ScrollView, which itself is inside a NavigationStack. It proved impractical to make the sheet resize when navigation occurred, so sheets match the height provided, and can always expand to the .large detent size.
 
-```
+```swift
 func adaptiveNavigationSheet(
-isPresented: Binding<Bool>, 
-dismissEnabled: Bool = true, 
-adaptiveDetentLimit: CGFloat = 450, 
-@ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View, 
-@ViewBuilder bottomPinnedContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View = { _,_ in EmptyView() }, 
-fullHeightDidChange: @escaping (Bool) -> () = { _ in }, 
-onDismiss: (() -> Void)? = nil) -> some View
+    isPresented: Binding<Bool>, 
+    dismissEnabled: Bool = true, 
+    adaptiveDetentLimit: CGFloat = 450, 
+    @ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View, 
+    @ViewBuilder bottomPinnedContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View = { _,_ in EmptyView() }, 
+    fullHeightDidChange: @escaping (Bool) -> () = { _ in }, 
+    onDismiss: (() -> Void)? = nil
+) -> some View
 ```
 
 ### NavigationListView
 Behaves the same as NavigationScrollView but uses a List instead of a ScrollView.
-```
+```swift
 func adaptiveNavigationListSheet(
-isPresented: Binding<Bool>, 
-dismissEnabled: Bool = true, 
-adaptiveDetentLimit: CGFloat = 450, 
-@ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View, 
-@ViewBuilder bottomPinnedContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View = { _,_ in EmptyView() }, 
-fullHeightDidChange: @escaping (Bool) -> () = { _ in }, 
-onDismiss: (() -> Void)? = nil) -> some View
+    isPresented: Binding<Bool>, 
+    dismissEnabled: Bool = true, 
+    adaptiveDetentLimit: CGFloat = 450, 
+    @ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View, 
+    @ViewBuilder bottomPinnedContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View = { _,_ in EmptyView() }, 
+    fullHeightDidChange: @escaping (Bool) -> () = { _ in }, 
+    onDismiss: (() -> Void)? = nil
+) -> some View
 ```
 
 ## Known Issues:
