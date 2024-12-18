@@ -15,7 +15,7 @@ public struct AdaptiveSheetPreview: View {
     
     @State var isShowingList : Bool = false
     
-    @State var expandingListCount : Int = 0
+    @State var expandingListCount : Int = 6
     @State var isShowingExpandingList : Bool = false
     
     @State var isShowingDemoNavView : Bool = false
@@ -50,16 +50,16 @@ public struct AdaptiveSheetPreview: View {
         .adaptiveAlert(isPresented: $isShowingSimpleAlert) { isPresented, detent in
             DemoAlertView()
         }
-        .adaptiveSheet(isPresented: $isShowingList, adaptiveDetentLimit: 300) { _, _ in
+        .adaptiveSheet(isPresented: $isShowingList, options: AdaptiveOptions(adaptiveDetentLimit: 300)) { _, _ in
             DemoListView()
         } bottomPinnedContent: { isPresented, _ in
             SheetButton(title: "Close") {
                 isPresented.wrappedValue = false
             }
         }
-        .adaptiveSheet(isPresented: $isShowingExpandingList, adaptiveDetentLimit: 500) { _, _ in
+        .adaptiveSheet(isPresented: $isShowingExpandingList, options: AdaptiveOptions(adaptiveDetentLimit: 200, minimumFittingSize: CGSize(width: 500, height: 200))) { _, _ in
             DemoExpandingListView(count: $expandingListCount)
-                .safeAreaPadding(.bottom, 80)
+                .safeAreaPadding(.bottom, 120)
         } bottomPinnedContent: { isPresented, _ in
             SheetButton(title: "Add Item") {
                 expandingListCount += 1

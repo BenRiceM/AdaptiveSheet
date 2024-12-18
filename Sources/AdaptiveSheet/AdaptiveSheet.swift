@@ -4,6 +4,10 @@
 
 import SwiftUI
 
+let isMacEnvironment: Bool = {
+    ProcessInfo.processInfo.isiOSAppOnMac
+}()
+
 enum AdaptiveStyle {
     case alert
     case scrollView
@@ -15,11 +19,20 @@ extension CGFloat {
     static let defaultDetentHeight: CGFloat = 200
 }
 
+public struct AdaptiveOptions : Sendable {
+    var adaptiveDetentLimit: CGFloat = 450
+    var dismissEnabled: Bool = true
+    var minimumFittingSize : CGSize = CGSize(width: 320, height: 240)
+    
+    public static let `default` = AdaptiveOptions()
+    public static let alert = AdaptiveOptions(adaptiveDetentLimit: 120, minimumFittingSize: CGSize(width: 320, height: 60))
+}
+
 @available(iOS 17.0, *)
 extension View {
     public func adaptiveAlert(
         isPresented: Binding<Bool>,
-        dismissEnabled: Bool = true,
+        options: AdaptiveOptions = .alert,
         @ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View,
         onDismiss: (() -> Void)? = nil
     )  -> some View {
@@ -27,8 +40,7 @@ extension View {
             AdaptiveModifier(
                 style: .alert,
                 isPresented: isPresented,
-                dismissEnabled: dismissEnabled,
-                heightLimit: nil,
+                options: options,
                 cardContent: cardContent,
                 bottomPinnedContent: { _,_ in EmptyView() },
                 fullHeightDidChange: { _ in },
@@ -39,8 +51,7 @@ extension View {
     
     public func adaptiveSheet(
         isPresented : Binding<Bool>,
-        dismissEnabled: Bool = true,
-        adaptiveDetentLimit: CGFloat = 450,
+        options: AdaptiveOptions = .default,
         @ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View,
         @ViewBuilder bottomPinnedContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View = { _,_ in EmptyView() },
         fullHeightDidChange: @escaping (Bool) -> () = { _ in },
@@ -50,8 +61,7 @@ extension View {
             AdaptiveModifier(
                 style: .scrollView,
                 isPresented: isPresented,
-                dismissEnabled: dismissEnabled,
-                heightLimit: adaptiveDetentLimit,
+                options: options,
                 cardContent: cardContent,
                 bottomPinnedContent: bottomPinnedContent,
                 fullHeightDidChange: fullHeightDidChange,
@@ -62,8 +72,7 @@ extension View {
     
     public func adaptiveNavigationSheet(
         isPresented : Binding<Bool>,
-        dismissEnabled: Bool = true,
-        adaptiveDetentLimit: CGFloat = 450,
+        options: AdaptiveOptions = .default,
         @ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View,
         @ViewBuilder bottomPinnedContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View = { _,_ in EmptyView() },
         fullHeightDidChange: @escaping (Bool) -> () = { _ in },
@@ -73,8 +82,7 @@ extension View {
             AdaptiveModifier(
                 style: .navigationScrollView,
                 isPresented: isPresented,
-                dismissEnabled: dismissEnabled,
-                heightLimit: adaptiveDetentLimit,
+                options: options,
                 cardContent: cardContent,
                 bottomPinnedContent: bottomPinnedContent,
                 fullHeightDidChange: fullHeightDidChange,
@@ -86,8 +94,7 @@ extension View {
     @available(iOS 18.0, *)
     public func adaptiveNavigationListSheet(
         isPresented : Binding<Bool>,
-        dismissEnabled: Bool = true,
-        adaptiveDetentLimit: CGFloat = 450,
+        options: AdaptiveOptions = .default,
         @ViewBuilder cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View,
         @ViewBuilder bottomPinnedContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> some View = { _,_ in EmptyView() },
         fullHeightDidChange: @escaping (Bool) -> () = { _ in },
@@ -97,8 +104,7 @@ extension View {
             AdaptiveModifier(
                 style: .navigationListView,
                 isPresented: isPresented,
-                dismissEnabled: dismissEnabled,
-                heightLimit: adaptiveDetentLimit,
+                options: options,
                 cardContent: cardContent,
                 bottomPinnedContent: bottomPinnedContent,
                 fullHeightDidChange: fullHeightDidChange,
@@ -115,7 +121,7 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
     
     @Binding private var isPresented : Bool
     
-    @State private var selectedDetent : PresentationDetent = .height(.defaultDetentHeight)
+    @State private var selectedDetent : PresentationDetent
     @State private var adaptiveDetent : PresentationDetent = .height(.defaultDetentHeight)
     @State private var adaptiveDetentTwo : PresentationDetent = .height(.defaultDetentHeight - 1)
     @State private var isExpandable: Bool = false
@@ -136,7 +142,10 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
     }
     
     private var availableDetents : Set<PresentationDetent> {
-        isExpandable && style != .alert
+        
+        guard !isMacEnvironment else { return [.large] }
+        
+        return isExpandable && style != .alert
         ? [adaptiveDetent, adaptiveDetentTwo, .large]
         : [adaptiveDetent, adaptiveDetentTwo]
     }
@@ -144,8 +153,7 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
     init(
         style: AdaptiveStyle,
         isPresented : Binding<Bool>,
-        dismissEnabled: Bool,
-        heightLimit: CGFloat?,
+        options: AdaptiveOptions,
         cardContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> CardContent,
         bottomPinnedContent: @escaping (Binding<Bool>, Binding<PresentationDetent>) -> PinnedContent?,
         fullHeightDidChange: @escaping (Bool) -> (),
@@ -153,34 +161,39 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
     ) {
         self.style = style
         self._isPresented = isPresented
-        self.dismissEnabled = dismissEnabled
-        self.heightLimit = heightLimit
+        self.dismissEnabled = options.dismissEnabled
+        self.heightLimit = options.adaptiveDetentLimit
+        self.minimumFittingSize = options.minimumFittingSize
         self.cardContent = cardContent
         self.bottomPinnedContent = bottomPinnedContent
         self.fullHeightDidChange = fullHeightDidChange
         self.onDismiss = onDismiss
-        self.selectedDetent = adaptiveDetent
-    }
-    
-    private var iPadMinSize : CGSize {
-        switch style {
-        case .alert:                return CGSize(width: 320, height: 60)
-        case .scrollView:           return CGSize(width: 320, height: 60)
-        case .navigationScrollView: return CGSize(width: 320, height: 320)
-        case .navigationListView:   return CGSize(width: 320, height: 320)
+
+        if isMacEnvironment {
+            self.selectedDetent = .large
+            self.isExpandable = true
+        } else {
+            self.selectedDetent = .height(.defaultDetentHeight)
         }
     }
+    
+    private var minimumFittingSize : CGSize
     
     func body(content: Content) -> some View {
         content
             .sheet(isPresented: $isPresented) {
                 onDismiss?()
-                selectedDetent = adaptiveDetent
+
+                if UIDevice.current.userInterfaceIdiom == .mac {
+                    selectedDetent = .large
+                } else {
+                    selectedDetent = adaptiveDetent
+                }
             } content: {
-                if #available(iOS 18.0, *), UIDevice.current.userInterfaceIdiom != .phone {
+                if #available(iOS 18.0, *), UIDevice.current.userInterfaceIdiom == .pad, !isMacEnvironment {
                     sheetBody
-                        .frame(minWidth: iPadMinSize.width, minHeight: iPadMinSize.height)
-                        .presentationSizing(.fitted.sticky())
+                        .frame(minWidth: minimumFittingSize.width, minHeight: minimumFittingSize.height)
+                        .presentationSizing(.fitted.sticky(horizontal: true, vertical: false))
                 } else {
                     sheetBody
                 }
@@ -264,7 +277,9 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
         .presentationDragIndicator(.hidden)
         .presentationDetents(availableDetents, selection: $selectedDetent)
         .presentationCompactAdaptation(.sheet)
-        .presentationBackground { Color.clear }
+        .presentationBackground {
+            isMacEnvironment ? Color.backgroundColor : Color.clear
+        }
         .interactiveDismissDisabled(!dismissEnabled)
         .animation(.default, value: selectedDetent)
         .animation(.default, value: adaptiveDetent)
@@ -331,7 +346,8 @@ struct AdaptiveScrollView<CardContent: View> : View {
         ScrollView {
             cardContent($isPresented, $selectedDetent)
                 .frame(maxWidth: .infinity)
-                .onGeometryChange(for: CGFloat.self, of: \.size.height) { AdaptiveLayout.handleHeightChange(
+                .onGeometryChange(for: CGFloat.self, of: \.size.height) {
+                    AdaptiveLayout.handleHeightChange(
                     to: $0,
                     selectedDetent: $selectedDetent,
                     adaptiveDetent: $adaptiveDetent,
@@ -465,6 +481,7 @@ struct BackgroundFill : View {
 
 struct AdaptiveLayout {
     
+    @MainActor
     static func handleHeightChange(
         to height: CGFloat,
         selectedDetent : Binding<PresentationDetent>,
@@ -473,6 +490,8 @@ struct AdaptiveLayout {
         isExpandable: Binding<Bool> = .constant(false),
         heightLimit: CGFloat
     ) {
+        guard !isMacEnvironment else { return }
+        
         var isLargeSheet : Bool { selectedDetent.wrappedValue == .large }
         
         isExpandable.wrappedValue = height > heightLimit
