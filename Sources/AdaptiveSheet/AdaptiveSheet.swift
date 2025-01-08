@@ -5,7 +5,7 @@
 import SwiftUI
 
 let isMacEnvironment: Bool = {
-    ProcessInfo.processInfo.isiOSAppOnMac
+    ProcessInfo.processInfo.isiOSAppOnMac || ProcessInfo.processInfo.isMacCatalystApp
 }()
 
 enum AdaptiveStyle {
