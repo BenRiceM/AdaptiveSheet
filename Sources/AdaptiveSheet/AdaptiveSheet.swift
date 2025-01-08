@@ -20,12 +20,25 @@ extension CGFloat {
 }
 
 public struct AdaptiveOptions : Sendable {
-    var adaptiveDetentLimit: CGFloat = 450
-    var dismissEnabled: Bool = true
-    var minimumFittingSize : CGSize = CGSize(width: 320, height: 240)
+    var adaptiveDetentLimit: CGFloat
+    var dismissEnabled: Bool
+    var minimumFittingSize : CGSize
+    
+    public init(
+        adaptiveDetentLimit: CGFloat = 450,
+        dismissEnabled: Bool = true,
+        minimumFittingSize: CGSize = CGSize(width: 320, height: 240)
+    ) {
+        self.adaptiveDetentLimit = adaptiveDetentLimit
+        self.dismissEnabled = dismissEnabled
+        self.minimumFittingSize = minimumFittingSize
+    }
     
     public static let `default` = AdaptiveOptions()
-    public static let alert = AdaptiveOptions(adaptiveDetentLimit: 120, minimumFittingSize: CGSize(width: 320, height: 60))
+    public static let alert = AdaptiveOptions(
+        adaptiveDetentLimit: 120,
+        minimumFittingSize: CGSize(width: 320, height: 60)
+    )
 }
 
 @available(iOS 17.0, *)
