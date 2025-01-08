@@ -142,9 +142,6 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
     }
     
     private var availableDetents : Set<PresentationDetent> {
-        
-        guard !isMacEnvironment else { return [.large] }
-        
         return isExpandable && style != .alert
         ? [adaptiveDetent, adaptiveDetentTwo, .large]
         : [adaptiveDetent, adaptiveDetentTwo]
@@ -169,12 +166,7 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
         self.fullHeightDidChange = fullHeightDidChange
         self.onDismiss = onDismiss
 
-        if isMacEnvironment {
-            self.selectedDetent = .large
-            self.isExpandable = true
-        } else {
-            self.selectedDetent = .height(.defaultDetentHeight)
-        }
+        self.selectedDetent = .height(.defaultDetentHeight)
     }
     
     private var minimumFittingSize : CGSize
@@ -183,14 +175,9 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
         content
             .sheet(isPresented: $isPresented) {
                 onDismiss?()
-
-                if UIDevice.current.userInterfaceIdiom == .mac {
-                    selectedDetent = .large
-                } else {
-                    selectedDetent = adaptiveDetent
-                }
+                selectedDetent = adaptiveDetent
             } content: {
-                if #available(iOS 18.0, *), UIDevice.current.userInterfaceIdiom == .pad, !isMacEnvironment {
+                if #available(iOS 18.0, *), UIDevice.current.userInterfaceIdiom == .pad {
                     sheetBody
                         .frame(minWidth: minimumFittingSize.width, minHeight: minimumFittingSize.height)
                         .presentationSizing(.fitted.sticky(horizontal: true, vertical: false))
@@ -222,7 +209,13 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
                     heightLimit: trueHeightLimit,
                     cardContent: cardContent
                 )
-                .background { BackgroundFill(isLargeSheet: isLargeSheet) }
+                .background {
+                    if isMacEnvironment {
+                        EmptyView()
+                    } else {
+                        BackgroundFill(isLargeSheet: isLargeSheet)
+                    }
+                }
                 .overlay(alignment: .bottom, content: {
                     bottomPinnedContent($isPresented, $selectedDetent)
                         .background { PinnedGradientView(isLargeSheet: isLargeSheet) }
@@ -244,7 +237,13 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
                         .background { PinnedGradientView(isLargeSheet: isLargeSheet) }
                         .ignoresSafeArea(edges: .bottom)
                 })
-                .background { BackgroundFill(isLargeSheet: isLargeSheet) }
+                .background {
+                    if isMacEnvironment {
+                        EmptyView()
+                    } else {
+                        BackgroundFill(isLargeSheet: isLargeSheet)
+                    }
+                }
                 
             case .navigationListView:
                 
@@ -271,7 +270,7 @@ struct AdaptiveModifier<CardContent: View, PinnedContent: View>: ViewModifier {
         }
         .tint(.primary)
         .mask(BackgroundFill(isLargeSheet: isLargeSheet))
-        .padding(.horizontal, isLargeSheet ? 0 : 16)
+        .padding(.horizontal, (isMacEnvironment || isLargeSheet) ? 0 : 16)
         .scrollBounceBehavior(.basedOnSize)
         .scrollIndicators(isLargeSheet ? .automatic : .hidden)
         .presentationDragIndicator(.hidden)
@@ -313,7 +312,13 @@ struct AdaptiveAlertView<CardContent: View> : View {
         ScrollView {
             cardContent($isPresented, $selectedDetent)
                 .frame(maxWidth: .infinity)
-                .background { BackgroundFill(isLargeSheet: isLargeSheet) }
+                .background {
+                    if isMacEnvironment {
+                        EmptyView()
+                    } else {
+                        BackgroundFill(isLargeSheet: isLargeSheet)
+                    }
+                }
                 .onGeometryChange(for: CGFloat.self, of: \.size.height) {
                     AdaptiveLayout.handleHeightChange(
                         to: $0,
@@ -473,11 +478,19 @@ struct PinnedGradientView: View {
 struct BackgroundFill : View {
     var isLargeSheet : Bool
     var body: some View {
-        RoundedRectangle(cornerRadius: isLargeSheet ? 0 : 36)
-            .foregroundStyle(Color.backgroundColor)
-            .ignoresSafeArea(.all, edges: isLargeSheet ? [.bottom] : [])
+        if isMacEnvironment {
+            Rectangle()
+                .foregroundStyle(Color.backgroundColor)
+                .ignoresSafeArea(.all, edges: isLargeSheet ? [.bottom] : [])
+        } else {
+            RoundedRectangle(cornerRadius: isLargeSheet || isMacEnvironment ? 0 : 36)
+                .foregroundStyle(Color.backgroundColor)
+                .ignoresSafeArea(.all, edges: isLargeSheet ? [.bottom] : [])
+        }
     }
 }
+
+
 
 struct AdaptiveLayout {
     
@@ -490,8 +503,6 @@ struct AdaptiveLayout {
         isExpandable: Binding<Bool> = .constant(false),
         heightLimit: CGFloat
     ) {
-        guard !isMacEnvironment else { return }
-        
         var isLargeSheet : Bool { selectedDetent.wrappedValue == .large }
         
         isExpandable.wrappedValue = height > heightLimit

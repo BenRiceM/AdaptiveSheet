@@ -47,6 +47,7 @@ public struct AdaptiveSheetPreview: View {
                 )
             }
         }
+        .frame(maxWidth: 600)
         .adaptiveAlert(isPresented: $isShowingSimpleAlert) { isPresented, detent in
             DemoAlertView()
         }
@@ -57,7 +58,7 @@ public struct AdaptiveSheetPreview: View {
                 isPresented.wrappedValue = false
             }
         }
-        .adaptiveSheet(isPresented: $isShowingExpandingList, options: AdaptiveOptions(adaptiveDetentLimit: 200, minimumFittingSize: CGSize(width: 500, height: 200))) { _, _ in
+        .adaptiveSheet(isPresented: $isShowingExpandingList, options: AdaptiveOptions(adaptiveDetentLimit: 500, minimumFittingSize: CGSize(width: 500, height: 200))) { _, _ in
             DemoExpandingListView(count: $expandingListCount)
                 .safeAreaPadding(.bottom, 120)
         } bottomPinnedContent: { isPresented, _ in
